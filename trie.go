@@ -9,7 +9,7 @@ func (t *Trie[T]) Remove(key string) *Trie[T] {
 		return t
 	}
 
-	curr := t.Root
+	curr := t.Root.Copy()
 	newRoot := curr
 
 	if len(key) == 0 {
@@ -27,11 +27,7 @@ func (t *Trie[T]) Remove(key string) *Trie[T] {
 		if islast(key, n) {
 			if len(node.Children) == 0 {
 				delete(curr.Children, nodePrefix)
-				if len(curr.Children) == 0 {
-					curr.IsValueNode = false
-				}
 			} else {
-
 				curr.Children[nodePrefix] = NewNode(node.Children)
 			}
 		}
@@ -62,7 +58,7 @@ func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 	}
 
 	var (
-		curr    = t.Root
+		curr    = t.Root.Copy()
 		newRoot = curr
 	)
 
@@ -88,7 +84,11 @@ func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 				if ok == false {
 					next = NewNode[T](map[string]*Node[T]{})
 				} else {
-					next = NodeWithValueAndChildren[T](preNode.Children, preNode.Value)
+					if preNode.IsValueNode {
+						next = NodeWithValueAndChildren[T](preNode.Children, preNode.Value)
+					} else {
+						next = NewNode[T](preNode.Children)
+					}
 				}
 			}
 			curr.Children[nodePrefix] = next
@@ -121,6 +121,24 @@ type Node[T any] struct {
 	IsValueNode bool
 	Children    map[string]*Node[T]
 	Value       T
+}
+
+func (n *Node[T]) Copy() *Node[T] {
+	newChildren := make(map[string]*Node[T])
+	if n == nil {
+		return nil
+	}
+
+	if n.Children != nil {
+		for key, child := range n.Children {
+			newChildren[key] = child.Copy()
+		}
+	}
+	return &Node[T]{
+		IsValueNode: n.IsValueNode,
+		Children:    newChildren,
+		Value:       n.Value,
+	}
 }
 
 func NewTrie[T any]() *Trie[T] {

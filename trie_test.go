@@ -118,7 +118,7 @@ func TestCopyOnWriteTest1(t *testing.T) {
 	// Delete something
 	trie4 := trie3.Remove("te")
 	trie5 := trie3.Remove("tes")
-	trie6 := trie3.Remove("test")
+	trie6 := trie3.Remove("test") // bug
 
 	// Check each snapshot
 	Equal(t, trie3.Get("te"), "23")
