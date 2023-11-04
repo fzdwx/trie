@@ -9,36 +9,37 @@ func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 		t.Root = NodeWithValueAndChildren(t.Root.Children, value)
 	}
 
-	root := t.Root
-	newRoot := root
+	curr := t.Root
+	newRoot := curr
 	for n, char := range key {
 		var next *Node[T]
 		nodePrefix := string(char)
-		if root == nil {
+		if curr == nil {
 			next = NewNode[T](map[string]*Node[T]{})
 			m := map[string]*Node[T]{
 				nodePrefix: next,
 			}
-			root = NewNode(m)
-			newRoot = root
+			curr = NewNode(m)
+			newRoot = curr
 		} else {
-			preNode, ok := root.Children[nodePrefix]
-			if n == len(key)-1 {
+			preNode, ok := curr.Children[nodePrefix]
+			if islast(key, n) {
 				if ok {
-					root.Children[nodePrefix] = NodeWithValueAndChildren[T](preNode.Children, value)
+					curr.Children[nodePrefix] = NodeWithValueAndChildren[T](preNode.Children, value)
 				} else {
-					root.Children[nodePrefix] = NodeWithValue[T](value)
+					curr.Children[nodePrefix] = NodeWithValue[T](value)
 				}
 				break
 			}
+
 			if ok == false {
 				next = NewNode[T](map[string]*Node[T]{})
 			} else {
 				next = NodeWithValueAndChildren[T](preNode.Children, preNode.Value)
 			}
-			root.Children[nodePrefix] = next
+			curr.Children[nodePrefix] = next
 		}
-		root = next
+		curr = next
 	}
 
 	return NewTrieWithRoot[T](newRoot)
@@ -101,4 +102,8 @@ func NodeWithValueAndChildren[T any](children map[string]*Node[T], val T) *Node[
 		Value:       val,
 		Children:    children,
 	}
+}
+
+func islast(key string, n int) bool {
+	return n == len(key)-1
 }
