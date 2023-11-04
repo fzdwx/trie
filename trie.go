@@ -16,6 +16,7 @@ func (t *Trie[T]) Remove(key string) *Trie[T] {
 		return NewTrieWithRoot(NewNode(t.Root.Children))
 	}
 
+	var nodes []*Node[T]
 	for n, char := range key {
 		nodePrefix := string(char)
 		node, ok := curr.Children[nodePrefix]
@@ -26,11 +27,30 @@ func (t *Trie[T]) Remove(key string) *Trie[T] {
 		if islast(key, n) {
 			if len(node.Children) == 0 {
 				delete(curr.Children, nodePrefix)
+				if len(curr.Children) == 0 {
+					curr.IsValueNode = false
+				}
 			} else {
+
 				curr.Children[nodePrefix] = NewNode(node.Children)
 			}
 		}
+		nodes = append(nodes, curr)
 		curr = node
+	}
+
+	for i := len(nodes) - 1; i >= 0; i-- {
+		//for i := 0; i < len(nodes); i++ {
+		node := nodes[i]
+		for k, child := range node.Children {
+			if child.IsValueNode == false && len(child.Children) == 0 {
+				delete(node.Children, k)
+			}
+		}
+	}
+
+	if newRoot.IsValueNode == false && len(newRoot.Children) == 0 {
+		newRoot = nil
 	}
 
 	return NewTrieWithRoot[T](newRoot)

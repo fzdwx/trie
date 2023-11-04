@@ -104,5 +104,6 @@ func TestRemoveFreeTest(t *testing.T) {
 	trie = trie.Remove("test")
 	Len(t, trie.Root.Children["t"].Children["e"].Children, 0)
 	trie = trie.Remove("te")
-	Equal(t, trie.Root, nil)
+
+	Nil(t, trie.Root)
 }
