@@ -6,15 +6,15 @@ import (
 
 func TestBasicPutTest(t *testing.T) {
 	trie := NewTrie[string]()
-	trie.Put("h1", "world")
-	trie.Put("h12", "world")
+	trie = trie.Put("h1", "world")
+	trie = trie.Put("h12", "world")
 	assertEqual(t, trie.Get("h1"), "world")
 	assertEqual(t, trie.Get("h12"), "world")
 }
 
 func TestTrieStructureCheck(t *testing.T) {
 	trie := NewTrie[string]()
-	trie.Put("test", "233")
+	trie = trie.Put("test", "233")
 	assertEqual(t, trie.Get("test"), "233")
 
 	assertLen(t, trie.Root.Children, 1)
@@ -26,7 +26,29 @@ func TestTrieStructureCheck(t *testing.T) {
 }
 
 func TestBasicPutGetTest(t *testing.T) {
+	trie := NewTrie[string]()
+	trie = trie.Put("test", "233")
+	assertEqual(t, trie.Get("test"), "233")
 
+	trie = trie.Put("test", "23333333")
+	assertEqual(t, trie.Get("test"), "23333333")
+
+	assertEqual(t, trie.Get("test-2333"), "")
+
+	trie = trie.Put("", "empty-key")
+	assertEqual(t, trie.Get(""), "empty-key")
+}
+
+func TestPutGetOnePath(t *testing.T) {
+	trie := NewTrie[string]()
+	trie = trie.Put("111", "111")
+	trie = trie.Put("11", "11")
+	trie = trie.Put("1111", "1111")
+	trie = trie.Put("11", "22")
+
+	assertEqual(t, trie.Get("11"), "22")
+	assertEqual(t, trie.Get("111"), "111")
+	assertEqual(t, trie.Get("1111"), "1111")
 }
 
 func assertTrue(t *testing.T, node bool) {
