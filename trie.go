@@ -4,6 +4,34 @@ type Trie[T any] struct {
 	Root *Node[T]
 }
 
+func (t *Trie[T]) Remove(key string) *Trie[T] {
+	if t.Root == nil {
+		return t
+	}
+
+	curr := t.Root
+	newRoot := curr
+
+	if len(key) == 0 {
+		return NewTrieWithRoot(NewNode(t.Root.Children))
+	}
+
+	for n, char := range key {
+		nodePrefix := string(char)
+		node, ok := curr.Children[nodePrefix]
+		if ok == false {
+			return t
+		}
+
+		if islast(key, n) {
+			curr.Children[nodePrefix] = NewNode(node.Children)
+		}
+		curr = node
+	}
+
+	return NewTrieWithRoot[T](newRoot)
+}
+
 func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 	if key == "" {
 		t.Root = NodeWithValueAndChildren(t.Root.Children, value)
