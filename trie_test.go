@@ -1,6 +1,7 @@
 package trie
 
 import (
+	"fmt"
 	. "github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -136,4 +137,117 @@ func TestCopyOnWriteTest1(t *testing.T) {
 	Equal(t, trie6.Get("te"), "23")
 	Equal(t, trie6.Get("tes"), "233")
 	Equal(t, trie6.Get("test"), "")
+}
+
+func TestCopyOnWriteTest2(t *testing.T) {
+	empty_trie := NewTrie[string]()
+	// Put something
+	trie1 := empty_trie.Put("test", "2333")
+	trie2 := trie1.Put("te", "23")
+	trie3 := trie2.Put("tes", "233")
+
+	// Override something
+	trie4 := trie3.Put("te", "23")
+	trie5 := trie3.Put("tes", "233")
+	trie6 := trie3.Put("test", "2333")
+
+	// Check each snapshot
+	Equal(t, trie3.Get("te"), "23")
+	Equal(t, trie3.Get("tes"), "233")
+	Equal(t, trie3.Get("test"), "2333")
+
+	Equal(t, trie4.Get("te"), "23")
+	Equal(t, trie4.Get("tes"), "233")
+	Equal(t, trie4.Get("test"), "2333")
+
+	Equal(t, trie5.Get("te"), "23")
+	Equal(t, trie5.Get("tes"), "233")
+	Equal(t, trie5.Get("test"), "2333")
+
+	Equal(t, trie6.Get("te"), "23")
+	Equal(t, trie6.Get("tes"), "233")
+	Equal(t, trie6.Get("test"), "2333")
+}
+
+func TestCopyOnWriteTest3(t *testing.T) {
+	empty_trie := NewTrie[string]()
+	// Put something
+	trie1 := empty_trie.Put("test", "2333")
+	trie2 := trie1.Put("te", "23")
+	trie3 := trie2.Put("", "233")
+
+	// Override something
+	trie4 := trie3.Put("te", "23")
+	trie5 := trie3.Put("", "233")
+	trie6 := trie3.Put("test", "2333")
+
+	// Check each snapshot
+	Equal(t, trie3.Get("te"), "23")
+	Equal(t, trie3.Get(""), "233")
+	Equal(t, trie3.Get("test"), "2333")
+
+	Equal(t, trie4.Get("te"), "23")
+	Equal(t, trie4.Get(""), "233")
+	Equal(t, trie4.Get("test"), "2333")
+
+	Equal(t, trie5.Get("te"), "23")
+	Equal(t, trie5.Get(""), "233")
+	Equal(t, trie5.Get("test"), "2333")
+
+	Equal(t, trie6.Get("te"), "23")
+	Equal(t, trie6.Get(""), "233")
+	Equal(t, trie6.Get("test"), "2333")
+}
+
+func TestMixedTest(t *testing.T) {
+	trie := NewTrie[string]()
+	for i := 0; i < 23333; i++ {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		value := fmt.Sprintf("value-{:#%d}", i)
+		trie = trie.Put(key, value)
+	}
+	trie_full := trie
+	for i := 0; i < 23333; i += 2 {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		value := fmt.Sprintf("new-value-{:#%d}", i)
+		trie = trie.Put(key, value)
+	}
+	trie_override := trie
+	for i := 0; i < 23333; i += 3 {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		trie = trie.Remove(key)
+	}
+	trie_final := trie
+
+	// verify trie_full
+	for i := 0; i < 23333; i++ {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		value := fmt.Sprintf("value-{:#%d}", i)
+		Equal(t, trie_full.Get(key), value)
+	}
+
+	// trie_override
+	for i := 0; i < 23333; i++ {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		if i%2 == 0 {
+			value := fmt.Sprintf("new-value-{:#%d}", i)
+			Equal(t, trie_override.Get(key), value)
+		} else {
+			value := fmt.Sprintf("value-{:#%d}", i)
+			Equal(t, trie_override.Get(key), value)
+		}
+	}
+
+	for i := 0; i < 23333; i++ {
+		key := fmt.Sprintf("key-{:#%d}", i)
+		if i%3 == 0 {
+			Equal(t, trie_final.Get(key), "")
+		} else if i%2 == 0 {
+			value := fmt.Sprintf("new-value-{:#%d}", i)
+			Equal(t, trie_final.Get(key), value)
+		} else {
+			value := fmt.Sprintf("value-{:#%d}", i)
+			Equal(t, trie_final.Get(key), value)
+		}
+	}
 }
