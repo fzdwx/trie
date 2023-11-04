@@ -4,7 +4,7 @@ type Trie[T any] struct {
 	Root *Node[T]
 }
 
-func (t *Trie[T]) Put(key string, value T) {
+func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 	if key == "" {
 		t.Root = NodeWithValueAndChildren(t.Root.Children, value)
 	}
@@ -29,8 +29,7 @@ func (t *Trie[T]) Put(key string, value T) {
 				} else {
 					root.Children[nodePrefix] = NodeWithValue[T](value)
 				}
-				t.Root = newRoot
-				return
+				break
 			}
 			if ok == false {
 				next = NewNode[T](map[string]*Node[T]{})
@@ -41,6 +40,8 @@ func (t *Trie[T]) Put(key string, value T) {
 		}
 		root = next
 	}
+
+	return NewTrieWithRoot[T](newRoot)
 }
 
 func (t *Trie[T]) Get(key string) T {
@@ -70,6 +71,12 @@ type Node[T any] struct {
 func NewTrie[T any]() *Trie[T] {
 	return &Trie[T]{
 		Root: nil,
+	}
+}
+
+func NewTrieWithRoot[T any](root *Node[T]) *Trie[T] {
+	return &Trie[T]{
+		Root: root,
 	}
 }
 
