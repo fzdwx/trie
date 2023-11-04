@@ -61,33 +61,35 @@ func (t *Trie[T]) Put(key string, value T) *Trie[T] {
 		t.Root = NodeWithValueAndChildren(t.Root.Children, value)
 	}
 
-	curr := t.Root
-	newRoot := curr
+	var (
+		curr    = t.Root
+		newRoot = curr
+	)
+
 	for n, char := range key {
-		var next *Node[T]
-		nodePrefix := string(char)
+		var (
+			next       *Node[T]
+			nodePrefix = string(char)
+		)
+
 		if curr == nil {
 			next = NewNode[T](map[string]*Node[T]{})
-			m := map[string]*Node[T]{
-				nodePrefix: next,
-			}
-			curr = NewNode(m)
+			curr = NewNode(map[string]*Node[T]{nodePrefix: next})
 			newRoot = curr
 		} else {
 			preNode, ok := curr.Children[nodePrefix]
 			if islast(key, n) {
-				if ok {
-					curr.Children[nodePrefix] = NodeWithValueAndChildren[T](preNode.Children, value)
+				if ok == false {
+					next = NodeWithValue[T](value)
 				} else {
-					curr.Children[nodePrefix] = NodeWithValue[T](value)
+					next = NodeWithValueAndChildren[T](preNode.Children, value)
 				}
-				break
-			}
-
-			if ok == false {
-				next = NewNode[T](map[string]*Node[T]{})
 			} else {
-				next = NodeWithValueAndChildren[T](preNode.Children, preNode.Value)
+				if ok == false {
+					next = NewNode[T](map[string]*Node[T]{})
+				} else {
+					next = NodeWithValueAndChildren[T](preNode.Children, preNode.Value)
+				}
 			}
 			curr.Children[nodePrefix] = next
 		}

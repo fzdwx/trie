@@ -107,3 +107,33 @@ func TestRemoveFreeTest(t *testing.T) {
 
 	Nil(t, trie.Root)
 }
+
+func TestCopyOnWriteTest1(t *testing.T) {
+	trie := NewTrie[string]()
+	// Put something
+	trie1 := trie.Put("test", "2333")
+	trie2 := trie1.Put("te", "23")
+	trie3 := trie2.Put("tes", "233")
+
+	// Delete something
+	trie4 := trie3.Remove("te")
+	trie5 := trie3.Remove("tes")
+	trie6 := trie3.Remove("test")
+
+	// Check each snapshot
+	Equal(t, trie3.Get("te"), "23")
+	Equal(t, trie3.Get("tes"), "233")
+	Equal(t, trie3.Get("test"), "2333")
+
+	Equal(t, trie4.Get("te"), "")
+	Equal(t, trie4.Get("tes"), "233")
+	Equal(t, trie4.Get("test"), "2333")
+
+	Equal(t, trie5.Get("te"), "23")
+	Equal(t, trie5.Get("tes"), "")
+	Equal(t, trie5.Get("test"), "2333")
+
+	Equal(t, trie6.Get("te"), "23")
+	Equal(t, trie6.Get("tes"), "233")
+	Equal(t, trie6.Get("test"), "")
+}
