@@ -24,7 +24,11 @@ func (t *Trie[T]) Remove(key string) *Trie[T] {
 		}
 
 		if islast(key, n) {
-			curr.Children[nodePrefix] = NewNode(node.Children)
+			if len(node.Children) == 0 {
+				delete(curr.Children, nodePrefix)
+			} else {
+				curr.Children[nodePrefix] = NewNode(node.Children)
+			}
 		}
 		curr = node
 	}

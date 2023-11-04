@@ -94,3 +94,15 @@ func TestBasicRemoveTest2(t *testing.T) {
 	Equal(t, trie.Get("tes"), "")
 	Equal(t, trie.Get("test"), "")
 }
+
+func TestRemoveFreeTest(t *testing.T) {
+	trie := NewTrie[string]()
+	trie = trie.Put("test", "2333")
+	trie = trie.Put("te", "23")
+	trie = trie.Put("tes", "233")
+	trie = trie.Remove("tes")
+	trie = trie.Remove("test")
+	Len(t, trie.Root.Children["t"].Children["e"].Children, 0)
+	trie = trie.Remove("te")
+	Equal(t, trie.Root, nil)
+}
