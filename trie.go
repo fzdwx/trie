@@ -5,6 +5,10 @@ type Trie[T any] struct {
 }
 
 func (t *Trie[T]) Put(key string, value T) {
+	if key == "" {
+		t.Root = NodeWithValueAndChildren(t.Root.Children, value)
+	}
+
 	root := t.Root
 	newRoot := root
 	for n, char := range key {
@@ -18,12 +22,16 @@ func (t *Trie[T]) Put(key string, value T) {
 			root = NewNode(m)
 			newRoot = root
 		} else {
+			preNode, ok := root.Children[nodePrefix]
 			if n == len(key)-1 {
-				root.Children[nodePrefix] = NodeWithValue[T](value)
+				if ok {
+					root.Children[nodePrefix] = NodeWithValueAndChildren[T](preNode.Children, value)
+				} else {
+					root.Children[nodePrefix] = NodeWithValue[T](value)
+				}
 				t.Root = newRoot
 				return
 			}
-			preNode, ok := root.Children[nodePrefix]
 			if ok == false {
 				next = NewNode[T](map[string]*Node[T]{})
 			} else {
